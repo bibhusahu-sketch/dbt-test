@@ -1,0 +1,24 @@
+gcp_netsuite_analytics:
+  target: dev # Default target when running locally on your laptop
+  outputs:
+    # 💻 LOCAL DEVELOPMENT TARGET (Your Laptop)
+    dev:
+      type: bigquery
+      method: oauth
+      project: dt-bibhu-sandbox-dev
+      dataset: dbt_practice         # Builds to your isolated practice dataset
+      location: europe-west2        # London Region
+      threads: 4
+      timeout_seconds: 300
+      # 🔐 Keyless Impersonation: Uses your gcloud login to safely act as the service account
+      impersonate_service_account: sa-dbt-transformation-dev@dt-bibhu-sandbox-dev.iam.gserviceaccount.com
+
+    # 🚀 PRODUCTION CI/CD TARGET (Google Cloud Run)
+    prod:
+      type: bigquery
+      method: oauth                 # In Cloud Run, oauth automatically loops into the GCP Metadata Server
+      project: dt-bibhu-sandbox-dev
+      dataset: dbt_production       # Builds to your clean production analytics dataset
+      location: europe-west2        # London Region
+      threads: 8                    # Boosted threads for faster cloud execution
+      timeout_seconds: 300
