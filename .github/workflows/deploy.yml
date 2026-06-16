@@ -60,5 +60,5 @@ jobs:
         run: |
           gcloud run jobs execute dbt-transform-job \
             --region=${{ env.REGION }} \
-            --args="build, --target, prod" \
+            --args="build, --target,prod" \
             --wait
