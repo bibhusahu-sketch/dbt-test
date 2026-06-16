@@ -1,15 +1,17 @@
 FROM python:3.10-slim
 
-# Install git in case your dbt project needs to pull external packages/packages.yml
+# Install git
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
-# Install the BigQuery adapter (this automatically handles dbt-core installation)
+# Install dbt-bigquery
 RUN pip install --no-cache-dir dbt-bigquery==1.8.0
 
 WORKDIR /usr/app
 
-# Copy all dbt profiles, models, macros, and configuration files into the container
+# 1. Copies your whole repo (including the subfolder) into the container
 COPY . .
 
-# Set the entrypoint to dbt so you can pass run/test commands dynamically
+# 🎯 2. THE FIX: Tell the container to move into the project subfolder where dbt_project.yml lives
+WORKDIR /usr/app/gcp_netsuite_analytics
+
 ENTRYPOINT ["dbt"]
