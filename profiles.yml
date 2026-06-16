@@ -16,7 +16,7 @@ gcp_netsuite_analytics:
     # 🚀 PRODUCTION CI/CD TARGET (Google Cloud Run)
     prod:
       type: bigquery
-      method: gcloud                 # In Cloud Run, oauth automatically loops into the GCP Metadata Server
+      method: oauth                 # In Cloud Run, oauth automatically loops into the GCP Metadata Server
       project: dt-bibhu-sandbox-dev
       dataset: dbt_production       # Builds to your clean production analytics dataset
       location: europe-west2        # London Region
