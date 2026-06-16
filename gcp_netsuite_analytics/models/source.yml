@@ -1,0 +1,7 @@
+version: 2
+sources:
+  - name: gcs
+    project: dt-bibhu-sandbox-dev
+    dataset: gcs
+    tables:
+      - name: transformations
