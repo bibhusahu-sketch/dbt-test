@@ -1,0 +1,66 @@
+name: dbt Slim CI Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    # Only trigger if SQL or structural configurations are altered
+    paths:
+      - 'models/**'
+      - 'macros/**'
+      - 'dbt_project.yml'
+      - 'profiles.yml'
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  PROJECT_ID: dt-bibhu-sandbox-dev
+  STATE_BUCKET: dt-bibhu-dbt-state-bucket # ◄ Your GCS bucket name
+  SERVICE_ACCOUNT: sa-dbt-transformation-dev@dt-bibhu-sandbox-dev.iam.gserviceaccount.com
+
+jobs:
+  slim-ci:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Pull down PR code branch
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. Authenticate Keylessly via WIF
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
+          service_account: ${{ env.SERVICE_ACCOUNT }}
+
+      # 3. Initialize Google Cloud SDK
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      # 4. Set up fast local Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-python: '3.10'
+          cache: 'pip'
+
+      # 5. Install dbt dependencies
+      - name: Install dbt Adapter
+        run: pip install dbt-bigquery==1.8.0
+
+      # 6. Fetch production manifest.json from GCS
+      - name: Download Production State Manifest
+        run: |
+          mkdir -p prod-state
+          gsutil cp gs://${{ env.STATE_BUCKET }}/manifest.json ./prod-state/manifest.json || echo "No production manifest found. Running full build."
+
+      # 7. Install dbt packages (if packages.yml exists)
+      - name: dbt deps
+        run: dbt deps
+
+      # 8. Execute Slim CI via Deferral Map
+      - name: Run and Test Modified Models Only
+        run: |
+          dbt build --target ci --select state:modified+ --defer --state ./prod-state
