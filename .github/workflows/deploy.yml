@@ -52,6 +52,8 @@ jobs:
           job: dbt-transform-job
           image: ${{ env.IMAGE_TAG }}
           region: ${{ env.REGION }}
+          # 🔐 FORCES the job to execute using its own credentials, fixing the error
+          flags: '--service-account=${{ env.SERVICE_ACCOUNT }}'
 
       # 6. Instruct Cloud Run to immediately process calculations inside BigQuery
       - name: Execute dbt transformations
